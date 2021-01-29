@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+
+<head>
+	<meta charset="utf-8" />
+	<script>(function (i, s, o, g, r, a, m) { i["GoogleAnalyticsObject"] = r; i[r] = i[r] || function () { (i[r].q = i[r].q || []).push(arguments) }, i[r].l = 1 * new Date(); a = s.createElement(o), m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m) })(window, document, "script", "https://www.google-analytics.com/analytics.js", "ga"); ga("create", "UA-105319773-1", { "cookieDomain": "auto" }); ga("set", "anonymizeIp", true); ga("send", "pageview");</script>
+	<title>Ballot Manager</title>
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap.min.css">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+		integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.js"></script>
+	<script type="text/javascript" charset="utf8"
+		src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" charset="utf8"
+		src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap.min.js"></script>
+</head>
+
+<body>
+	<div class="container">
+
+		<h1>Ballot Manager</h1>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">New Ballot Contract</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="official">Ballot Official Name</label>
+							<input id="official" class="form-control" type="text" value="BigGG">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="proposal">Proposal</label>
+							<input id="proposal" class="form-control" type="text" value="No">
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<input id="btnGo" class="btn btn-primary" type="button" value="Go" />
+					<img id="loader" src="https://loading.io/spinners/reload/index.ajax-syncing-loading-icon.svg">
+				</div>
+
+				<div id="kaleidorefresh" class="form-group">
+					<label for="contractAddress">Contract Address</label>
+					<input id="contractAddress" class="form-control" type="text" value="">
+					<input id="btnRefresh" class="btn btn-primary" type="button" value="Refresh" />
+				</div>
+
+			</div>
+		</div>
+
+		<div class="row" id="panels_contract">
+			<div class="col-md-6">
+
+				<div class="panel panel-default">
+					<div class="panel-heading">Contract Details</div>
+					<div class="panel-body">
+
+						<div class="row">
+							<div class="col-md-6">
+								<span id="lbl_state" class=""></span>
+							</div>
+							<div class="col-md-6" align="right">
+								<input id="btnStart" class="btn btn-primary" type="button" value="Start Voting" />
+								<input id="btnEnd" class="btn btn-primary" type="button" value="End Voting" />
+								<img id="loaderStartVote"
+									src="https://loading.io/spinners/reload/index.ajax-syncing-loading-icon.svg">
+							</div>
+						</div>
+
+						<div id="lbl_officialname"></div>
+						<div id="lbl_proposal"></div>
+						<div id="lbl_address"></div>
+						<div id="lbl_state"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-3">
+				<div class="panel panel-default">
+					<div class="panel-heading">Vote Details</div>
+					<div class="panel-body">
+						<div id="lbl_result"></div>
+						<div id="lbl_voters_num"></div>
+						<div id="lbl_candidates_num"></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3">
+				<div class="panel panel-default">
+					<div class="panel-heading">Candidates</div>
+					<div class="panel-body">
+						<div id="lbl_final_candidates"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel panel-default" id="panels_candidates">
+			<div class="panel-heading">Candidates</div>
+			<div class="panel-body">
+		
+				<div id="section_addCandidate">
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="txtNewCandidateName">Candidate Name</label>
+								<input id="txtNewCandidateName" class="form-control" type="text" value="ingine">
+							</div>
+						</div>
+					</div>
+				
+					<div class="form-group">
+						<input id="btnAddCandidate" class="btn btn-primary" type="button" value="Add" />
+						<img id="loaderNewCandidate" src="https://loading.io/spinners/reload/index.ajax-syncing-loading-icon.svg">
+					</div>
+				</div>
+				
+				<div id="section_listCandidates">
+					<table id="candidateTable" class="table table-striped table-bordered" style="width:100%">
+						<thead>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+		
+			</div>
+		</div>
+
+		<div class="panel panel-default" id="panels_voters">
+			<div class="panel-heading">Voters</div>
+			<div class="panel-body">
+				<div id="section_addVoter">
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="txtNewVoterAddress">Voter Wallet Address</label>
+								<input id="txtNewVoterAddress" class="form-control" type="text"
+									value="Account Address">
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="txtNewVoterName">Voter Name</label>
+								<input id="txtNewVoterName" class="form-control" type="text" value="heheXD">
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="txtNewVoterBallot">Voter's ballots</label>
+								<input id="txtNewVoterBallot" class="form-control" type="number" value="1億">
+							</div>
+						</div>
+					</div>
+				
+					<div class="form-group">
+						<input id="btnAddVoter" class="btn btn-primary" type="button" value="Add" />
+						<img id="loaderNewVoter" src="https://loading.io/spinners/reload/index.ajax-syncing-loading-icon.svg">
+					</div>
+				</div>
+				
+				<div id="section_listVoters">
+					<table id="voterTable" class="table table-striped table-bordered" style="width:100%">
+						<thead>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+
+	<script>
+		var web3 = new Web3();
+		var accountaddress;
+		var ballotContract;
+		var ballotByteCode;
+		var Ballot;
+		var ballotABI = [
+				{
+					"inputs": [
+						{
+							"internalType": "string",
+							"name": "_ballotOfficialName",
+							"type": "string"
+						},
+						{
+							"internalType": "string",
+							"name": "_proposal",
+							"type": "string"
+						}
+					],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "constructor"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "index",
+							"type": "uint256"
+						},
+						{
+							"indexed": false,
+							"internalType": "string",
+							"name": "cName",
+							"type": "string"
+						}
+					],
+					"name": "candidateAdd",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"internalType": "string",
+							"name": "cName",
+							"type": "string"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "amount",
+							"type": "uint256"
+						}
+					],
+					"name": "candidateInfo",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"internalType": "address",
+							"name": "voter",
+							"type": "address"
+						},
+						{
+							"indexed": false,
+							"internalType": "uint256",
+							"name": "remainVoteAmount",
+							"type": "uint256"
+						}
+					],
+					"name": "remainingVoteAmount",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"internalType": "address",
+							"name": "voter",
+							"type": "address"
+						}
+					],
+					"name": "voteDone",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"internalType": "string",
+							"name": "cName",
+							"type": "string"
+						}
+					],
+					"name": "voteEnded",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [],
+					"name": "voteStarted",
+					"type": "event"
+				},
+				{
+					"anonymous": false,
+					"inputs": [
+						{
+							"indexed": false,
+							"internalType": "address",
+							"name": "voter",
+							"type": "address"
+						}
+					],
+					"name": "voterAdded",
+					"type": "event"
+				},
+				{
+					"constant": false,
+					"inputs": [
+						{
+							"internalType": "string",
+							"name": "_cName",
+							"type": "string"
+						}
+					],
+					"name": "addCandidate",
+					"outputs": [],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"constant": false,
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "_voterAddress",
+							"type": "address"
+						},
+						{
+							"internalType": "string",
+							"name": "_voterName",
+							"type": "string"
+						},
+						{
+							"internalType": "uint256",
+							"name": "_allowedVote",
+							"type": "uint256"
+						}
+					],
+					"name": "addVoter",
+					"outputs": [],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "ballotOfficialAddress",
+					"outputs": [
+						{
+							"internalType": "address",
+							"name": "",
+							"type": "address"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "ballotOfficialName",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"name": "candidateBallotAmount",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"name": "candidates",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "candidatesIndex",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": false,
+					"inputs": [
+						{
+							"internalType": "string",
+							"name": "_choice",
+							"type": "string"
+						},
+						{
+							"internalType": "uint256",
+							"name": "_ballotAmount",
+							"type": "uint256"
+						}
+					],
+					"name": "doVote",
+					"outputs": [
+						{
+							"internalType": "bool",
+							"name": "voted",
+							"type": "bool"
+						}
+					],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "elected",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": false,
+					"inputs": [],
+					"name": "endVote",
+					"outputs": [],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "getCanNum",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "length",
+							"type": "uint256"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "getCandidateArray",
+					"outputs": [
+						{
+							"internalType": "string[]",
+							"name": "",
+							"type": "string[]"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "proposal",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "",
+							"type": "string"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": false,
+					"inputs": [],
+					"name": "startVote",
+					"outputs": [],
+					"payable": false,
+					"stateMutability": "nonpayable",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "state",
+					"outputs": [
+						{
+							"internalType": "enum Ballot.State",
+							"name": "",
+							"type": "uint8"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "totalCandidate",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [],
+					"name": "totalVoter",
+					"outputs": [
+						{
+							"internalType": "uint256",
+							"name": "",
+							"type": "uint256"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				},
+				{
+					"constant": true,
+					"inputs": [
+						{
+							"internalType": "address",
+							"name": "",
+							"type": "address"
+						}
+					],
+					"name": "voterRegister",
+					"outputs": [
+						{
+							"internalType": "string",
+							"name": "voterName",
+							"type": "string"
+						},
+						{
+							"internalType": "uint256",
+							"name": "allowedVote",
+							"type": "uint256"
+						},
+						{
+							"internalType": "bool",
+							"name": "voted",
+							"type": "bool"
+						}
+					],
+					"payable": false,
+					"stateMutability": "view",
+					"type": "function"
+				}
+			]
+		var voterTable;
+
+		$(document).ready(function () {
+			$('#kaleidorefresh').hide();
+			$('#panels_contract').hide();
+			$('#panels_candidates').hide();
+			$('#panels_voters').hide();
+
+			candidateTable = $('#candidateTable').DataTable({
+				columns: [
+					{ title: "Number" },
+					{ title: "Name" },
+				]
+			});
+
+			voterTable = $('#voterTable').DataTable({
+				columns: [
+					{ title: "Address" },
+					{ title: "Name" },
+					{ title: "Allowed ballots" },
+					{ title: "Status" }
+				]
+			});
+		});
+	
+		window.addEventListener('load', async () => {
+
+			// Modern dapp browsers...
+			if (window.ethereum) {
+				window.web3 = new Web3(ethereum);
+				try {
+					// Request account access if needed
+					await ethereum.enable();
+					// Acccounts now exposed
+					accountaddress = web3.givenProvider.selectedAddress;
+					ballotContract = new web3.eth.Contract(ballotABI);
+					ballotByteCode ="0x60806040526000805560006001556040518060400160405280600481526020017f4e6f6e6500000000000000000000000000000000000000000000000000000000815250600490805190602001906200005a9291906200012e565b503480156200006857600080fd5b50604051620020863803806200208683398181016040526200008e919081019062000239565b33600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055508160069080519060200190620000e79291906200012e565b508060079080519060200190620001009291906200012e565b506000600b60006101000a81548160ff021916908360028111156200012157fe5b021790555050506200033d565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106200017157805160ff1916838001178555620001a2565b82800160010185558215620001a2579182015b82811115620001a157825182559160200191906001019062000184565b5b509050620001b19190620001b5565b5090565b620001da91905b80821115620001d6576000816000905550600101620001bc565b5090565b90565b600082601f830112620001ef57600080fd5b8151620002066200020082620002da565b620002ac565b915080825260208301602083018583830111156200022357600080fd5b6200023083828462000307565b50505092915050565b600080604083850312156200024d57600080fd5b600083015167ffffffffffffffff8111156200026857600080fd5b6200027685828601620001dd565b925050602083015167ffffffffffffffff8111156200029457600080fd5b620002a285828601620001dd565b9150509250929050565b6000604051905081810181811067ffffffffffffffff82111715620002d057600080fd5b8060405250919050565b600067ffffffffffffffff821115620002f257600080fd5b601f19601f8301169050602081019050919050565b60005b83811015620003275780820151818401526020810190506200030a565b8381111562000337576000848401525b50505050565b611d39806200034d6000396000f3fe608060405234801561001057600080fd5b50600436106101165760003560e01c80637a9da969116100a2578063af15408711610071578063af154087146102ad578063b07b0b73146102df578063b92239461461030f578063c19d93fb14610319578063de975d181461033757610116565b80637a9da9691461022357806385048829146102415780638f570f151461025f578063909497471461028f57610116565b8063462e91ec116100e9578063462e91ec146101a35780634c0a6af0146101bf5780635f82128f146101c95780636332abc9146101e7578063753ec1031461020557610116565b806309c56e641461011b5780631812dab4146101395780633477ee2e1461015757806344b3ac0314610187575b600080fd5b610123610355565b604051610130919061195a565b60405180910390f35b61014161043e565b60405161014e9190611a64565b60405180910390f35b610171600480360361016c91908101906115d7565b610444565b60405161017e91906119b2565b60405180910390f35b6101a1600480360361019c919081019061149a565b6104fd565b005b6101bd60048036036101b89190810190611542565b61067e565b005b6101c76107bf565b005b6101d161089f565b6040516101de91906119b2565b60405180910390f35b6101ef61093d565b6040516101fc9190611a64565b60405180910390f35b61020d610943565b60405161021a91906119b2565b60405180910390f35b61022b6109e1565b6040516102389190611a64565b60405180910390f35b6102496109e7565b6040516102569190611a64565b60405180910390f35b61027960048036036102749190810190611583565b6109f4565b604051610286919061197c565b60405180910390f35b610297610d5c565b6040516102a491906118fb565b60405180910390f35b6102c760048036036102c29190810190611471565b610d82565b6040516102d693929190611a04565b60405180910390f35b6102f960048036036102f49190810190611501565b610e51565b6040516103069190611a64565b60405180910390f35b610317610e7f565b005b610321611176565b60405161032e9190611997565b60405180910390f35b61033f611189565b60405161034c91906119b2565b60405180910390f35b60606003805480602002602001604051908101604052809291908181526020016000905b82821015610435578382906000526020600020018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156104215780601f106103f657610100808354040283529160200191610421565b820191906000526020600020905b81548152906001019060200180831161040457829003601f168201915b505050505081526020019060010190610379565b50505050905090565b60015481565b6003818154811061045157fe5b906000526020600020016000915090508054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156104f55780601f106104ca576101008083540402835291602001916104f5565b820191906000526020600020905b8154815290600101906020018083116104d857829003601f168201915b505050505081565b600080600281111561050b57fe5b600b60009054906101000a900460ff16600281111561052657fe5b1461053057600080fd5b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461058a57600080fd5b610592611227565b8381600001819052508281602001818152505080600960008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600082015181600001908051906020019061060192919061124a565b506020820151816001015560408201518160020160006101000a81548160ff02191690831515021790555090505060008081548092919060010191905055507fb9e5f9042e6c6eb94817f660cfa81afea9585e59d72bfc3348a2305cbd33e1338560405161066f91906118fb565b60405180910390a15050505050565b600080600281111561068c57fe5b600b60009054906101000a900460ff1660028111156106a757fe5b146106b157600080fd5b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461070b57600080fd5b60038290806001815401808255809150509060018203906000526020600020016000909192909190915090805190602001906107489291906112ca565b50506000600a8360405161075c91906118cd565b9081526020016040518091039020819055507f5dc52d7e186542c6786505751c7758f7b2b1581f031fd978222c2bbb67654464600154836040516107a1929190611a7f565b60405180910390a16001600081548092919060010191905055505050565b60008060028111156107cd57fe5b600b60009054906101000a900460ff1660028111156107e857fe5b146107f257600080fd5b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461084c57600080fd5b6001600b60006101000a81548160ff0219169083600281111561086b57fe5b02179055507fd0dc01800a369fef30d3fced5275b8b916549867622e79efca5245c479fda4ea60405160405180910390a150565b60048054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156109355780601f1061090a57610100808354040283529160200191610935565b820191906000526020600020905b81548152906001019060200180831161091857829003601f168201915b505050505081565b60005481565b60078054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156109d95780601f106109ae576101008083540402835291602001916109d9565b820191906000526020600020905b8154815290600101906020018083116109bc57829003601f168201915b505050505081565b60025481565b6000600380549050905090565b60006001806002811115610a0457fe5b600b60009054906101000a900460ff166002811115610a1f57fe5b14610a2957600080fd5b82600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060010154811115610a7957600080fd5b60008090506000600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060000180546001816001161561010002031660029004905014158015610b2757506000600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060010154115b15610d5057610b3461134a565b33816000019073ffffffffffffffffffffffffffffffffffffffff16908173ffffffffffffffffffffffffffffffffffffffff168152505086816020018190525085600a88604051610b8691906118cd565b90815260200160405180910390206000828254019250508190555085600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101600082825403925050819055507fa53f5db91fc2e75658cf068dc3ca05c96a47d6b5a958f15fd8a37ea4881ef76833600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060010154604051610c64929190611931565b60405180910390a1600191506000600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101541415610d4e576001600960003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060020160006101000a81548160ff0219169083151502179055507f55c65cf9526efdf6c2252fe9757889dbd93e10172cad0f2edb1df619c88dbf7d33604051610d459190611916565b60405180910390a15b505b80935050505092915050565b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6009602052806000526040600020600091509050806000018054600181600116156101000203166002900480601f016020809104026020016040519081016040528092919081815260200182805460018160011615610100020316600290048015610e2e5780601f10610e0357610100808354040283529160200191610e2e565b820191906000526020600020905b815481529060010190602001808311610e1157829003601f168201915b5050505050908060010154908060020160009054906101000a900460ff16905083565b600a818051602081018201805184825260208301602085012081835280955050505050506000915090505481565b6001806002811115610e8d57fe5b600b60009054906101000a900460ff166002811115610ea857fe5b14610eb257600080fd5b600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614610f0c57600080fd5b60008090506002600b60006101000a81548160ff02191690836002811115610f3057fe5b021790555060008090505b6003805490508110156110c657606060038281548110610f5757fe5b906000526020600020018054600181600116156101000203166002900480601f016020809104026020016040519081016040528092919081815260200182805460018160011615610100020316600290048015610ff55780601f10610fca57610100808354040283529160200191610ff5565b820191906000526020600020905b815481529060010190602001808311610fd857829003601f168201915b505050505090506000600a8260405161100e91906118cd565b90815260200160405180910390205490507f5f91c72745a8f9d156e680a232a361020a3c71d559c9058fa5b3bc8f505a5dcb82826040516110509291906119d4565b60405180910390a1600a8260405161106891906118cd565b9081526020016040518091039020548410156110b757600a8260405161108e91906118cd565b908152602001604051809103902054935081600490805190602001906110b59291906112ca565b505b50508080600101915050610f3b565b5060008090505b6003805490508110156111715781600a600383815481106110ea57fe5b9060005260206000200160405161110191906118e4565b9081526020016040518091039020541415611164577f1c9db16d4f54d3a4e1f06123c554022a9f3f0357d24c7de3780857ddc4de92446003828154811061114457fe5b9060005260206000200160405161115b9190611a42565b60405180910390a15b80806001019150506110cd565b505050565b600b60009054906101000a900460ff1681565b60068054600181600116156101000203166002900480601f01602080910402602001604051908101604052809291908181526020018280546001816001161561010002031660029004801561121f5780601f106111f45761010080835404028352916020019161121f565b820191906000526020600020905b81548152906001019060200180831161120257829003601f168201915b505050505081565b604051806060016040528060608152602001600081526020016000151581525090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061128b57805160ff19168380011785556112b9565b828001600101855582156112b9579182015b828111156112b857825182559160200191906001019061129d565b5b5090506112c6919061137a565b5090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061130b57805160ff1916838001178555611339565b82800160010185558215611339579182015b8281111561133857825182559160200191906001019061131d565b5b509050611346919061137a565b5090565b6040518060400160405280600073ffffffffffffffffffffffffffffffffffffffff168152602001606081525090565b61139c91905b80821115611398576000816000905550600101611380565b5090565b90565b6000813590506113ae81611cc8565b92915050565b600082601f8301126113c557600080fd5b81356113d86113d382611adc565b611aaf565b915080825260208301602083018583830111156113f457600080fd5b6113ff838284611c68565b50505092915050565b600082601f83011261141957600080fd5b813561142c61142782611b08565b611aaf565b9150808252602083016020830185838301111561144857600080fd5b611453838284611c68565b50505092915050565b60008135905061146b81611cdf565b92915050565b60006020828403121561148357600080fd5b60006114918482850161139f565b91505092915050565b6000806000606084860312156114af57600080fd5b60006114bd8682870161139f565b935050602084013567ffffffffffffffff8111156114da57600080fd5b6114e686828701611408565b92505060406114f78682870161145c565b9150509250925092565b60006020828403121561151357600080fd5b600082013567ffffffffffffffff81111561152d57600080fd5b611539848285016113b4565b91505092915050565b60006020828403121561155457600080fd5b600082013567ffffffffffffffff81111561156e57600080fd5b61157a84828501611408565b91505092915050565b6000806040838503121561159657600080fd5b600083013567ffffffffffffffff8111156115b057600080fd5b6115bc85828601611408565b92505060206115cd8582860161145c565b9150509250929050565b6000602082840312156115e957600080fd5b60006115f78482850161145c565b91505092915050565b600061160c838361172f565b905092915050565b61161d81611c20565b82525050565b61162c81611bc5565b82525050565b600061163d82611b59565b6116478185611b87565b93508360208202850161165985611b34565b8060005b8581101561169557848403895281516116768582611600565b945061168183611b7a565b925060208a0199505060018101905061165d565b50829750879550505050505092915050565b6116b081611bd7565b82525050565b6116bf81611c32565b82525050565b60006116d082611b6f565b6116da8185611ba9565b93506116ea818560208601611c77565b6116f381611caa565b840191505092915050565b600061170982611b6f565b6117138185611bba565b9350611723818560208601611c77565b80840191505092915050565b600061173a82611b64565b6117448185611b98565b9350611754818560208601611c77565b61175d81611caa565b840191505092915050565b600061177382611b64565b61177d8185611ba9565b935061178d818560208601611c77565b61179681611caa565b840191505092915050565b6000815460018116600081146117be57600181146117e457611828565b607f60028304166117cf8187611ba9565b955060ff198316865260208601935050611828565b600282046117f28187611ba9565b95506117fd85611b44565b60005b8281101561181f57815481890152600182019150602081019050611800565b80880195505050505b505092915050565b60008154600181166000811461184d5760018114611872576118b6565b607f600283041661185e8187611bba565b955060ff19831686528086019350506118b6565b600282046118808187611bba565b955061188b85611b44565b60005b828110156118ad5781548189015260018201915060208101905061188e565b82880195505050505b505092915050565b6118c781611c16565b82525050565b60006118d982846116fe565b915081905092915050565b60006118f08284611830565b915081905092915050565b60006020820190506119106000830184611623565b92915050565b600060208201905061192b6000830184611614565b92915050565b60006040820190506119466000830185611614565b61195360208301846118be565b9392505050565b600060208201905081810360008301526119748184611632565b905092915050565b600060208201905061199160008301846116a7565b92915050565b60006020820190506119ac60008301846116b6565b92915050565b600060208201905081810360008301526119cc8184611768565b905092915050565b600060408201905081810360008301526119ee81856116c5565b90506119fd60208301846118be565b9392505050565b60006060820190508181036000830152611a1e8186611768565b9050611a2d60208301856118be565b611a3a60408301846116a7565b949350505050565b60006020820190508181036000830152611a5c81846117a1565b905092915050565b6000602082019050611a7960008301846118be565b92915050565b6000604082019050611a9460008301856118be565b8181036020830152611aa681846116c5565b90509392505050565b6000604051905081810181811067ffffffffffffffff82111715611ad257600080fd5b8060405250919050565b600067ffffffffffffffff821115611af357600080fd5b601f19601f8301169050602081019050919050565b600067ffffffffffffffff821115611b1f57600080fd5b601f19601f8301169050602081019050919050565b6000819050602082019050919050565b60008190508160005260206000209050919050565b600081519050919050565b600081519050919050565b600081519050919050565b6000602082019050919050565b600082825260208201905092915050565b600082825260208201905092915050565b600082825260208201905092915050565b600081905092915050565b6000611bd082611bf6565b9050919050565b60008115159050919050565b6000819050611bf182611cbb565b919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b6000611c2b82611c44565b9050919050565b6000611c3d82611be3565b9050919050565b6000611c4f82611c56565b9050919050565b6000611c6182611bf6565b9050919050565b82818337600083830152505050565b60005b83811015611c95578082015181840152602081019050611c7a565b83811115611ca4576000848401525b50505050565b6000601f19601f8301169050919050565b60038110611cc557fe5b50565b611cd181611bc5565b8114611cdc57600080fd5b50565b611ce881611c16565b8114611cf357600080fd5b5056fea365627a7a723158204eb1db75f38a2d18458e6329e0f90a9025cb2156edd760584f94a8a2b0e027866c6578706572696d656e74616cf564736f6c63430005110040";
+					
+				} catch (error) {
+					// User denied account access...
+				}
+			}
+			
+			// Legacy dapp browsers...
+			else if (window.web3) {
+				window.web3 = new Web3(web3.currentProvider);
+				// Acccounts always exposed
+				web3.eth.sendTransaction({/* ... */ });
+			}
+			// Non-dapp browsers...
+			else {
+				console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+			}
+		});
+
+
+		var BallotContractAddress = "";
+		var MyTransactionHash;
+		var latestBlock = web3.eth.blockNumber;
+
+		function refreshContract(_contractAddress) {
+			loadBallotContract(_contractAddress);
+			var myBallot = new web3.eth.Contract(ballotABI, _contractAddress);
+			var latestBlock = web3.eth.blockNumber; //get the latest blocknumber
+			var currentState = loadState(myBallot);
+
+			if (currentState == 0) {
+				$('#panels_contract').show();
+				$('#panels_voters').show();
+				$('#panels_candidates').show();
+				$("#btnStart").show();
+				$("#btnEnd").hide();
+				$("#loader").hide();
+				$("#section_addCandidate").show();
+				$("#section_addVoter").show();
+			}
+			else if (currentState == 1) {
+				$("#loaderStartVote").hide();
+				$("#btnStart").hide();
+				$("#btnEnd").show();
+				$("#section_addCandidate").hide();
+				$("#section_addVoter").hide();
+			}
+			else if (currentState == 2) {
+				$("#loaderStartVote").hide();
+				$("#btnEnd").hide();
+			}
+
+		}
+
+		function getContract() {
+			web3.eth.getTransactionReceipt(MyTransactionHash)
+				.then((receipt) => {
+					try {
+						if (receipt.contractAddress) {
+							BallotContractAddress = receipt.contractAddress;
+							loadBallotContract(BallotContractAddress);
+							console.log(BallotContractAddress);
+							$("#contractAddress").val(BallotContractAddress);
+							watchVoteStarted(); //start watching for events
+							watchVoterAdded(); //start watching for new voters
+							watchVoteDone(); //start watching for vote done
+							watchVoteEnd(); //start watching for vote end
+							watchCandidateAdded();//start watching for new candidate
+							watchRemainingVoteAmount();
+							//watchCandidateInfo();
+							$('#panels_contract').show();
+							$('#panels_voters').show();
+							$('#panels_candidates').show();
+							$("#btnStart").show();
+							$("#btnEnd").hide();
+							$("#loader").hide();
+							$("#section_addCandidate").show();
+							$("#section_addVoter").show();
+							return;
+						}
+					}
+					catch (e) {
+						console.log("nope");
+						window.setTimeout(getContract, 1000);
+					}
+				});
+		}
+		
+			
+
+		//-------------- Watching Section -------------------//
+		var lastEnd= "";
+		function watchVoteEnd() {
+			
+			Ballot.events.voteEnded({ fromBlock: latestBlock }, (error, event) => {
+				if (event.blockNumber != latestBlock) {   //accept only new events
+					latestBlock = latestBlock + 1;   //update the latest blockNumber
+				}
+				console.log('voteEnd');
+				loadState(Ballot);
+				loadFinalResult(Ballot);
+				// if (lastEnd != event.returnValues.cName) {
+				Ballot.methods.totalCandidate().call().then((result) => {
+					for (let i = 0; i < result; i++) {
+						console.log('vote ended start loading candidates ballot' + i);
+						loadFinalCandidate(Ballot, i);
+					}
+					});
+					//lastVoteAdded = event.returnValues.cName;
+				
+				
+				$("#loaderStartVote").hide();
+				$("#btnEnd").hide();
+			})
+				.on('data', (event) => {
+
+				})
+				.on('changed', (event) => {
+					// remove event from local database
+				})
+				.on('error', console.error)
+		}
+
+		function watchVoteDone() {
+			Ballot.events.voteDone({
+			}, (error, event) => {
+				console.log(event.returnValues.voter);
+				updateNewVote(event.returnValues.voter);
+			})
+				.on('data', (event) => {
+
+				})
+				.on('changed', (event) => {
+					// remove event from local database
+				})
+				.on('error', console.error)
+		}
+
+		// var candidateInfoArray = [];
+		// function watchCandidateInfo() {
+		// 	Ballot.events.candidateInfo({
+		// 	}, (error, event) => {
+		// 		candidateInfoArray.push(event);
+		// 		candidateInfoArray.forEach((item, index, array) => {
+		// 			var first = item.returnValues.cName
+		// 			if (item.returnValues.cName == first) {
+		// 				$("#lbl_final_candidates").append('"<b>' + item.returnValues.cName + ': </b>"' + item.returnValues.amount);
+		// 			}
+		// 		});
+		// 	})
+		// 		.on('data', (event) => {
+
+		// 		})
+		// 		.on('changed', (event) => {
+		// 			// remove event from local database
+		// 		})
+		// 		.on('error', console.error)
+		// }
+
+		var lastVoteAdded = "";
+		function watchVoterAdded() {
+			Ballot.events.voterAdded({
+			}, (error, event) => {
+				console.log(event.returnValues.voter);
+				loadTotalVoter(Ballot);
+
+				//strange hack: this event fires twice for some reasons
+				//so I save the last voter address and suppress it if
+				//it is the same as the previous one :P
+				if (lastVoteAdded != event.returnValues.voter) {
+					loadVoter(Ballot, event.returnValues.voter);
+					lastVoteAdded = event.returnValues.voter;
+				}
+
+				$("#loaderNewVoter").hide();
+			})
+				.on('data', (event) => {
+
+				})
+				.on('changed', (event) => {
+					// remove event from local database
+				})
+				.on('error', console.error)
+		}
+
+		var lastCandidateAdded = "";
+		function watchCandidateAdded() {
+			Ballot.events.candidateAdd({
+			}, (error, event) => {
+				loadTotalCandidate(Ballot);
+
+				//strange hack: this event fires twice for some reasons
+				//so I save the last voter address and suppress it if
+				//it is the same as the previous one :P
+				if (lastCandidateAdded != event.returnValues.cName) {
+					loadCandidate(Ballot, event.returnValues.index);
+					lastCandidateAdded = event.returnValues.cName;
+				}
+
+
+				$("#loaderNewCandidate").hide();
+			})
+				.on('data', (event) => {
+
+				})
+				.on('changed', (event) => {
+					// remove event from local database
+				})
+				.on('error', console.error)
+		}
+
+		function watchRemainingVoteAmount() {
+			Ballot.events.remainingVoteAmount({
+			}, (error, event) => {
+				console.log('dected remain vote changed');
+				updateRemainingVotes(event.returnValues.voter, event.returnValues.remainVoteAmount);
+			})
+				.on('data', (event) => {
+
+				})
+				.on('changed', (event) => {
+					// remove event from local database
+				})
+				.on('error', console.error)
+		}
+
+		function watchVoteStarted() {
+			Ballot.events.voteStarted({}, (error, event) => { })
+				.on('data', (event) => {
+					console.log(event.event); // same results as the optional callback above
+					$("#loaderStartVote").hide();
+					$("#btnStart").hide();
+					$("#btnEnd").show();
+					$("#section_addCandidate").hide();
+					$("#section_addVoter").hide();
+					loadState(Ballot);
+				})
+				.on('changed', (event) => {
+				})
+				.on('error', console.error)
+		}
+
+		//-------------- Loading Section -------------------//
+
+		async function loadBallotContract(myBallotContractAddress) {
+			Ballot = new web3.eth.Contract(ballotABI, myBallotContractAddress);
+			Ballot.methods.ballotOfficialName().call().then((result) => {
+				$("#lbl_officialname").html("<b>Ballot Official Name: </b>" + result);
+			});
+			Ballot.methods.proposal().call().then((result) => {
+				$("#lbl_proposal").html("<b>Proposal: </b>" + result);
+			});
+
+			loadFinalResult(Ballot);
+			loadTotalVoter(Ballot);
+			loadTotalCandidate(Ballot);
+			
+
+			loadState(Ballot);
+
+			$("#lbl_address").html("<b>Address: </b>" + myBallotContractAddress);
+		};
+
+		async function loadFinalResult(myBallot) {
+			myBallot.methods.elected().call().then((result) => {
+				$("#lbl_result").html("<b>Elected: </b>" + result);
+			});
+		}
+
+		async function loadTotalVoter(myBallot) {
+			myBallot.methods.totalVoter().call().then((result) => {
+				$("#lbl_voters_num").html("<b>Voters: </b>" + result);
+			});
+		}
+
+		async function loadTotalCandidate(myBallot) {
+			myBallot.methods.totalCandidate().call().then((result) => {
+				$("#lbl_candidates_num").html("<b>Candidates: </b>" + result);
+			});
+		}
+
+		async function loadState(myBallot) {
+			myBallot.methods.state().call().then((result) => {
+				if (result == 0) {
+					$("#lbl_state").addClass("label label-primary");
+					$("#lbl_state").html("Created");
+				}
+				else if (result == 1) {
+					$("#lbl_state").addClass("label label-success");
+					$("#lbl_state").html("Voting");
+				}
+				else if (result == 2) {
+					$("#lbl_state").addClass("label label-danger");
+					$("#lbl_state").html("Ended");
+				}
+				return result;
+			});
+		}
+
+		async function loadVoter(myBallot, _myVoterAddress) {
+			myBallot.methods.voterRegister(_myVoterAddress).call().then((result) => {
+				console.log(result);
+
+				var voteStatus;
+				if (result.voted) {
+					voteStatus = "<span class='label label-primary'>Voted</span>";
+				}
+				else {
+					voteStatus = "<span class='label label-warning'>Voting</span>";
+				}
+
+				var newRow = voterTable.row.add([
+					_myVoterAddress,
+					result.voterName,
+					result.allowedVote,
+					voteStatus,
+				]).draw(false).node();
+				$('td:eq(2)', newRow).attr('id', _myVoterAddress +'ballots'+"_cell");
+				$('td:eq(3)', newRow).attr('id', _myVoterAddress +'status'+ "_cell");
+
+			});
+
+		}
+
+		async function loadCandidate(myBallot, _index) {
+			myBallot.methods.candidates(_index).call().then((result) => {
+				console.log(result);
+
+				var newRow = candidateTable.row.add([
+					_index,
+					result,
+				]).draw(false).node();
+
+			});
+
+		}
+
+		async function loadFinalCandidate(myBallot, _index) {
+			myBallot.methods.candidates(_index).call().then((result) => {
+				loadFinalCandidateBallot(myBallot, result);
+			});
+		}
+
+		 
+		async function loadFinalCandidateBallot(myBallot, _name) {
+			myBallot.methods.candidateBallotAmount(_name).call().then((result) => {
+				$("#lbl_final_candidates").append('"<b>' + _name + ': </b>"' + result);
+			});
+		}
+
+		function updateRemainingVotes(_myVoterAddress, remainVoteAmount) {
+			console.log(remainVoteAmount);
+			$("#" + _myVoterAddress + 'ballots' + "_cell").text(remainVoteAmount);
+		}
+
+		function updateNewVote(_myVoterAddress) {
+			$("#" + _myVoterAddress +'status'+ "_cell").html("<span class='label label-primary'>Voted</span>");
+		}
+
+		
+
+		//-------------- Button Section -------------------//
+
+		$("#btnEnd").click(async function () {
+			$("#loaderStartVote").show();
+			//Ballot = new web3.eth.Contract(ballotABI, BallotContractAddress);
+
+			var mygas;
+			Ballot.methods.endVote().estimateGas({ from: accountaddress })
+				.then(function (gasAmount) {
+					mygas = gasAmount;
+				})
+			
+			Ballot.methods.endVote().send({
+				from: accountaddress,
+				gas: mygas,
+				gasPrice: web3.eth.gasPrice
+			})
+				.on('transactionHash', (hash) => {
+					console.log("a");
+				})
+				.on('receipt', (receipt) => {
+					console.log("b");
+
+				})
+				.on('confirmation', (confirmationNumber, receipt) => {
+					console.log("c");
+
+				})
+				.on('error', console.error);
+		});
+
+		$("#btnStart").click(async function () {
+			$("#loaderStartVote").show();
+			//Ballot = new web3.eth.Contract(ballotABI, BallotContractAddress);
+
+			var mygas;
+			Ballot.methods.startVote().estimateGas({ from: accountaddress })
+				.then(function (gasAmount) {
+					mygas = gasAmount;
+				})
+
+			Ballot.methods.startVote().send({
+				from: accountaddress,
+				gas: mygas,
+				gasPrice: web3.eth.gasPrice
+			})
+				.on('transactionHash', (hash) => {
+					console.log("a");
+				})
+				.on('receipt', (receipt) => {
+					console.log("b");
+
+				})
+				.on('confirmation', (confirmationNumber, receipt) => {
+					console.log("c");
+				})
+				.on('error', console.error);
+		});
+
+		$("#btnAddCandidate").click(async function () {
+				$("#loaderNewCandidate").show();
+				console.log($("#txtNewCandidateName").val());
+
+				//Ballot = new web3.eth.Contract(ballotABI, BallotContractAddress);
+
+				//estimate first
+				var mygas;
+				Ballot.methods.addCandidate($("#txtNewCandidateName").val()).estimateGas({ from: accountaddress })
+					.then(function (gasAmount) {
+						mygas = gasAmount;
+					})
+
+				Ballot.methods.addCandidate($("#txtNewCandidateName").val()).send({
+					from: accountaddress,
+					gas: mygas,
+					gasPrice: web3.eth.gasPrice
+				})
+					.on('transactionHash', (hash) => {
+						console.log("a");
+					})
+					.on('receipt', (receipt) => {
+						console.log("b");
+
+					})
+					.on('confirmation', (confirmationNumber, receipt) => {
+						console.log("c");
+					})
+					.on('error', console.error);
+
+			});
+
+		$("#btnAddVoter").click(async function () {
+			$("#loaderNewVoter").show();
+			// console.log($("#txtNewVoterAddress").val());
+			// console.log($("#txtNewVoterName").val());
+
+			//Ballot = new web3.eth.Contract(ballotABI, BallotContractAddress);
+
+			//estimate first
+			var mygas;
+			Ballot.methods.addVoter($("#txtNewVoterAddress").val(), $("#txtNewVoterName").val(), $("#txtNewVoterBallot").val()).estimateGas({ from: accountaddress })
+				.then(function (gasAmount) {
+					mygas = gasAmount;
+				})
+
+			Ballot.methods.addVoter($("#txtNewVoterAddress").val(), $("#txtNewVoterName").val(), $("#txtNewVoterBallot").val()).send({
+				from: accountaddress,
+				gas: mygas,
+				gasPrice: web3.eth.gasPrice
+			})
+				.on('transactionHash', (hash) => {
+					console.log("a");
+				})
+				.on('receipt', (receipt) => {
+					console.log("b");
+
+				})
+				.on('confirmation', (confirmationNumber, receipt) => {
+					console.log("c");
+				})
+				.on('error', console.error);
+
+		});
+
+		$("#btnRefresh").click(async function () {
+			refreshContract($("#contractAddress").val());
+		});
+
+		$("#btnGo").click(async function () {
+			$("#loader").show();
+			var i = 0;
+			var _ballotOfficialName = $("#official").val();
+			var _proposal = $("#proposal").val();
+
+			ballotContract.deploy({
+				data: ballotByteCode,
+				arguments: [_ballotOfficialName, _proposal],
+			})
+				.send({
+					from: accountaddress,
+					gas: 2308700,
+					gasPrice: web3.eth.gasPrice,
+					gasLimit: 2000000
+				}, (error, transactionHash) => {
+					MyTransactionHash = transactionHash;
+					//getContract(); for private kaleido chain only
+				})
+				.on('error', (error) => {
+					console.log("b");
+				})
+				.on('transactionHash', (transactionHash) => {
+					console.log("c");
+				})
+				.on('receipt', (receipt) => {
+					console.log("DONE" + receipt.contractAddress); // contains the new contract address
+
+					BallotContractAddress = receipt.contractAddress;
+					loadBallotContract(BallotContractAddress);
+					$("#contractAddress").val(BallotContractAddress);
+					watchVoteStarted(); //start watching for events
+					watchVoterAdded(); //start watching for new voters
+					watchVoteDone(); //start watching for vote done
+					watchVoteEnd(); //start watching for vote end
+					watchCandidateAdded();//start watching for new candidates
+					watchRemainingVoteAmount();
+					//watchCandidateInfo();
+					$('#panels_contract').show();
+					$('#panels_voters').show();
+					$('#panels_candidates').show();
+					$("#btnStart").show();
+					$("#btnEnd").hide();
+					$("#loader").hide();
+					$("#section_addCandidate").show();
+					$("#section_addVoter").show();
+				})
+				.on('confirmation', (confirmationNumber, receipt) => {
+					console.log(i);
+					i++;
+				})
+				.then((newContractInstance) => {
+					console.log(newContractInstance.options.address) // instance with the new contract address
+				});
+
+		});
+
+
+	</script>
+
+</body>
+
+</html>
